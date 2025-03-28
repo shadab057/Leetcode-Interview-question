@@ -1,0 +1,37 @@
+class Solution:
+    def maxPoints(self, grid: List[List[int]], queries: List[int]) -> List[int]:
+        R = len(grid)
+        C = len(grid[0])
+        outmap = {}
+        seen = set()
+
+        def search(q, n):
+            while q:
+                g, r, c = heapq.heappop(q)
+                if (r, c) in seen:
+                    continue
+                if g >= n:
+                    heapq.heappush(q, (g, r, c))
+                    break
+                seen.add((r, c))
+                if r+1 < R:
+                    heapq.heappush(q, (grid[r+1][c], r+1, c))
+                if r-1 >= 0:
+                    heapq.heappush(q, (grid[r-1][c], r-1, c))
+                if c+1 < C:
+                    heapq.heappush(q, (grid[r][c+1], r, c+1))
+                if c-1 >= 0:
+                    heapq.heappush(q, (grid[r][c-1], r, c-1))
+
+            outmap[n] = len(seen)
+
+        q = [(grid[0][0], 0, 0)]
+        for n in sorted(queries):
+            if n in outmap:
+                continue
+            search(q, n)
+
+        output = []
+        for n in queries:
+            output.append(outmap[n])
+        return output
