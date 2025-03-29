@@ -1,0 +1,64 @@
+from math import gcd
+from collections import Counter
+
+class Solution:
+    def maximumScore(self, nums: list[int], k: int) -> int:
+        MOD = 10**9 + 7
+        n = len(nums)
+        
+        def prime_score(num):
+            if num == 1:
+                return 0
+            
+            score = 0
+            i = 2
+            seen = set()
+            
+            while i * i <= num:
+                if num % i == 0:
+                    if i not in seen:
+                        score += 1
+                        seen.add(i)
+                    while num % i == 0:
+                        num //= i
+                i += 1
+            
+            if num > 1 and num not in seen:
+                score += 1
+            
+            return score
+        
+        prime_scores = [prime_score(num) for num in nums]
+        
+        left = [-1] * n
+        right = [n] * n
+        
+        stack = []
+        for i in range(n):
+            while stack and prime_scores[stack[-1]] < prime_scores[i]:
+                stack.pop()
+            if stack:
+                left[i] = stack[-1]
+            stack.append(i)
+        
+        stack = []
+        for i in range(n-1, -1, -1):
+            while stack and prime_scores[stack[-1]] <= prime_scores[i]:
+                stack.pop()
+            if stack:
+                right[i] = stack[-1]
+            stack.append(i)
+        
+        operations = [(i, (i - left[i]) * (right[i] - i), nums[i]) for i in range(n)]
+        
+        operations.sort(key=lambda x: x[2], reverse=True)
+        
+        result = 1
+        for _, count, value in operations:
+            operations_to_perform = min(k, count)
+            result = (result * pow(value, operations_to_perform, MOD)) % MOD
+            k -= operations_to_perform
+            if k == 0:
+                break
+        
+        return result
