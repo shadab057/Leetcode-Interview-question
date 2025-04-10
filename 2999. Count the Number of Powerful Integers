@@ -1,0 +1,43 @@
+class Solution:
+    def numberOfPowerfulInt(self, start: int, finish: int, limit: int, s: str) -> int:
+        s_num = int(s)
+        s_len = len(s)
+        power = 10 ** s_len
+     
+        count = 1 if start <= s_num <= finish else 0
+        
+        min_prefix = max(1, (start - s_num + power - 1) // power)
+        max_prefix = (finish - s_num) // power
+        
+        if min_prefix > max_prefix:
+            return count
+        
+        def count_valid_prefixes(n):
+            if n < 1:
+                return 0
+            s_n = str(n)
+            
+            from functools import lru_cache
+            
+            @lru_cache(maxsize=None)
+            def dp(pos, tight, leading_zero):
+                if pos == len(s_n):
+                    return 0 if leading_zero else 1
+                
+                limit_digit = int(s_n[pos]) if tight else 9
+                total = 0
+                
+                for d in range(0, min(limit_digit, limit) + 1):
+                    new_tight = tight and (d == limit_digit)
+                    new_leading = leading_zero and (d == 0)
+                    if new_leading:
+                        total += dp(pos + 1, new_tight, True)
+                    else:
+                        total += dp(pos + 1, new_tight, False)
+                
+                return total
+            
+            return dp(0, True, True)
+        
+        count += count_valid_prefixes(max_prefix) - count_valid_prefixes(min_prefix - 1)
+        return count
